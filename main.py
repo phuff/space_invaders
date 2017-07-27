@@ -32,6 +32,7 @@ class Player(Base):
         self.y = y
         self.missil_cooldown = 0
         self.missils = []
+        self.is_alive = True
 
     def update(self, keys):
         if keys[K_LEFT]:
@@ -55,6 +56,8 @@ class Player(Base):
         pygame.draw.rect(screen, self.COLOR, self.rect)
         for missil in self.missils:
             missil.draw(screen)
+
+
 
 
 class Direction:
@@ -92,7 +95,7 @@ class Enemy(Base):
     def next_movement(self):
         return (self.movement + 1) % len(self.MOVEMENTS)
 
-    def update(self, missils):
+    def update(self, player):
         self.missil_cooldown -= 1
         if self.missil_cooldown <= 0 and len(self.missils) < self.MAX_MISSILS:
             self.missil_cooldown = random.randrange(100, 1000)
@@ -108,8 +111,11 @@ class Enemy(Base):
             self.frames -= 1
         for missil in self.missils:
             missil.update()
+            if missil.is_alive and missil.rect.colliderect(player.rect):
+                player.is_alive = False
+                return
 
-        for missil in missils:
+        for missil in player.missils:
             if missil.rect.colliderect(self.rect):
                 self.is_alive = False
                 missil.is_alive = False
@@ -163,9 +169,14 @@ class Game(object):
     def __init__(self):
         os.environ['SDL_VIDEO_CENTERED'] = '1'
         pygame.init()
+        pygame.font.init()
         self.done = False
         self.screen = pygame.display.set_mode(self.RESOLUTION)
         self.clock = pygame.time.Clock()
+        script_path = os.path.dirname(os.path.realpath(__file__))
+        font_path = os.path.join(script_path, "digital-7.ttf")
+        font_size = 72
+        self.font = pygame.font.Font(font_path, font_size)
         pygame.display.set_caption(self.WINDOWS_TITLE)
         self.player = Player(self.WIDTH // 2 - Player.WIDTH // 2, self.HEGIHT - Player.HEGIHT)
         self.enemies = []
@@ -183,9 +194,11 @@ class Game(object):
             if event.type == pygame.QUIT:
                 self.done = True
                 return
+        if not self.player.is_alive:
+            return
         self.player.update(keys)
         for enemy in self.enemies:
-            enemy.update(self.player.missils)
+            enemy.update(self.player)
 
         self.enemies[:] = [enemy for enemy in self.enemies if enemy.is_alive]
         for enemy in self.enemies:
@@ -198,6 +211,10 @@ class Game(object):
         self.player.draw(self.screen)
         for enemy in self.enemies:
             enemy.draw(self.screen)
+        if not self.player.is_alive:
+            surface = self.font.render('Game Over', False, (255, 0, 0))
+            rect = surface.get_rect(center=(Game.WIDTH // 2, Game.HEGIHT // 2))
+            self.screen.blit(surface, rect)
         pygame.display.flip()
 
     def wait(self):
