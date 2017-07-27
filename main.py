@@ -13,6 +13,11 @@ class Base(object):
     def size(self):
         return (self.WIDTH, self.HEGIHT)
 
+    @property
+    def rect(self):
+        return pygame.Rect(self.pos, self.size)
+
+
 class Player(Base):
     HEGIHT = 20
     WIDTH = 60
@@ -47,8 +52,7 @@ class Player(Base):
         self.missils[:] = [missil for missil in self.missils if missil.is_alive]
 
     def draw(self, screen):
-        rect = pygame.Rect(self.pos, self.size)
-        pygame.draw.rect(screen, self.COLOR, rect)
+        pygame.draw.rect(screen, self.COLOR, self.rect)
         for missil in self.missils:
             missil.draw(screen)
 
@@ -79,12 +83,13 @@ class Enemy(Base):
         self.movement = self.INITIAL_MOVEMENT
         self.direction = self.MOVEMENTS[self.movement]
         self.dx, self.dy, self.frames = self.DIRECTIONS[self.direction]
+        self.is_alive = True
 
     @property
     def next_movement(self):
         return (self.movement + 1) % len(self.MOVEMENTS)
 
-    def update(self):
+    def update(self, missils):
         if self.frames == 0:
             self.movement = self.next_movement
             self.direction = self.MOVEMENTS[self.movement]
@@ -93,11 +98,13 @@ class Enemy(Base):
             self.x += self.dx
             self.y += self.dy
             self.frames -= 1
-        
+        for missil in missils:
+            if missil.rect.colliderect(self.rect):
+                self.is_alive = False
+                return
 
     def draw(self, screen):
-        rect = pygame.Rect(self.pos, self.size)
-        pygame.draw.rect(screen, self.COLOR, rect)
+        pygame.draw.rect(screen, self.COLOR, self.rect)
 
 class Missil(Base):
     WIDTH = 10
@@ -165,7 +172,8 @@ class Game(object):
                 return
         self.player.update(keys)
         for enemy in self.enemies:
-            enemy.update()
+            enemy.update(self.player.missils)
+        self.enemies[:] = [enemy for enemy in self.enemies if enemy.is_alive]
 
     def draw(self):
         self.screen.fill(self.BLACK)
