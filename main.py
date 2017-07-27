@@ -18,10 +18,14 @@ class Player(Base):
     WIDTH = 60
     COLOR = (0, 255, 0)
     DX = 10
+    MISSIL_COOLDOWN = 15
+    MAX_MISSILS = 3
 
     def __init__(self, x, y):
         self.x = x
         self.y = y
+        self.missil_cooldown = 0
+        self.missils = []
 
     def update(self, keys):
         if keys[K_LEFT]:
@@ -34,10 +38,19 @@ class Player(Base):
                 self.x += self.DX
             else:
                 self.x = Game.RIGHT - self.WIDTH
+        if keys[K_SPACE] and self.missil_cooldown == 0 and len(self.missils) < self.MAX_MISSILS:
+            self.missil_cooldown = self.MISSIL_COOLDOWN
+            self.missils.append(Missil(self.x + self.WIDTH // 2, self.y - self.HEGIHT, Direction.UP))
+        self.missil_cooldown = max(0, self.missil_cooldown - 1)
+        for missil in self.missils:
+            missil.update()
+        self.missils[:] = [missil for missil in self.missils if missil.is_alive]
 
     def draw(self, screen):
         rect = pygame.Rect(self.pos, self.size)
         pygame.draw.rect(screen, self.COLOR, rect)
+        for missil in self.missils:
+            missil.draw(screen)
 
 
 class Direction:
@@ -86,6 +99,35 @@ class Enemy(Base):
         rect = pygame.Rect(self.pos, self.size)
         pygame.draw.rect(screen, self.COLOR, rect)
 
+class Missil(Base):
+    WIDTH = 10
+    HEGIHT = 20
+    WHITE = (255, 255, 255)
+    GREEN = (0, 255, 0)
+    SPEED = 5
+
+    def __init__(self, x, y, direction):
+        self.x = x
+        self.y = y
+        self.direction = direction
+        self.is_alive = True
+
+    @property
+    def is_enemy(self):
+        return self.direction == Direction.DOWN
+
+    def draw(self, screen):
+        color = self.WHITE if self.is_enemy else self.GREEN
+        rect = pygame.Rect(self.pos, self.size)
+        pygame.draw.rect(screen, color, rect)
+
+    def update(self):
+        if self.direction == Direction.DOWN:
+            self.y += self.SPEED
+        else:
+            self.y += -self.SPEED
+        self.is_alive = Game.TOP <= self.y <= (Game.BOTTOM - self.HEGIHT)
+
 
 class Game(object):
 
@@ -95,6 +137,8 @@ class Game(object):
     RIGHT = WIDTH
     WINDOWS_TITLE = 'Space Invaders v1.0'
     BLACK = (0, 0, 0)
+    TOP = 0
+    BOTTOM = HEGIHT
 
     def __init__(self):
         os.environ['SDL_VIDEO_CENTERED'] = '1'
