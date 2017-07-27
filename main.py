@@ -139,8 +139,7 @@ class Missil(Base):
 
     def draw(self, screen):
         color = self.WHITE if self.is_enemy else self.GREEN
-        rect = pygame.Rect(self.pos, self.size)
-        pygame.draw.rect(screen, color, rect)
+        pygame.draw.rect(screen, color, self.rect)
 
     def update(self):
         if self.direction == Direction.DOWN:
