@@ -49,7 +49,6 @@ class Player(Base):
         self.missil_cooldown = max(0, self.missil_cooldown - 1)
         for missil in self.missils:
             missil.update()
-        self.missils[:] = [missil for missil in self.missils if missil.is_alive]
 
     def draw(self, screen):
         pygame.draw.rect(screen, self.COLOR, self.rect)
@@ -101,6 +100,7 @@ class Enemy(Base):
         for missil in missils:
             if missil.rect.colliderect(self.rect):
                 self.is_alive = False
+                missil.is_alive = False
                 return
 
     def draw(self, screen):
@@ -173,7 +173,9 @@ class Game(object):
         self.player.update(keys)
         for enemy in self.enemies:
             enemy.update(self.player.missils)
+
         self.enemies[:] = [enemy for enemy in self.enemies if enemy.is_alive]
+        self.player.missils[:] = [missil for missil in self.player.missils if missil.is_alive]
 
     def draw(self):
         self.screen.fill(self.BLACK)
