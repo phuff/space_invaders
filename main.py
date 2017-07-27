@@ -104,7 +104,10 @@ class Game(object):
         self.clock = pygame.time.Clock()
         pygame.display.set_caption(self.WINDOWS_TITLE)
         self.player = Player(self.WIDTH // 2 - Player.WIDTH // 2, self.HEGIHT - Player.HEGIHT)
-        self.enemy = Enemy(70, 20)
+        self.enemies = []
+        for i in range(5):
+            for j in range(11):
+                self.enemies.append(Enemy(70 + (70 * j), 20 + i*70))
 
     def update(self):
         # Handle exit events
@@ -117,12 +120,14 @@ class Game(object):
                 self.done = True
                 return
         self.player.update(keys)
-        self.enemy.update()
+        for enemy in self.enemies:
+            enemy.update()
 
     def draw(self):
         self.screen.fill(self.BLACK)
         self.player.draw(self.screen)
-        self.enemy.draw(self.screen)
+        for enemy in self.enemies:
+            enemy.draw(self.screen)
         pygame.display.flip()
 
     def wait(self):
