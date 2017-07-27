@@ -1,4 +1,5 @@
 import os
+import random
 
 import pygame
 from pygame.locals import *
@@ -75,6 +76,7 @@ class Enemy(Base):
     }
     INITIAL_MOVEMENT = 0
     MOVEMENTS = [Direction.LEFT, Direction.DOWN, Direction.RIGHT, Direction.DOWN]
+    MAX_MISSILS = 1
 
     def __init__(self, x, y):
         self.x = x
@@ -83,12 +85,19 @@ class Enemy(Base):
         self.direction = self.MOVEMENTS[self.movement]
         self.dx, self.dy, self.frames = self.DIRECTIONS[self.direction]
         self.is_alive = True
+        self.missil_cooldown = random.randrange(100, 1000)
+        self.missils = []
 
     @property
     def next_movement(self):
         return (self.movement + 1) % len(self.MOVEMENTS)
 
     def update(self, missils):
+        self.missil_cooldown -= 1
+        if self.missil_cooldown <= 0 and len(self.missils) < self.MAX_MISSILS:
+            self.missil_cooldown = random.randrange(100, 1000)
+            self.missils.append(Missil(self.x + self.WIDTH // 2, self.y + self.HEGIHT, Direction.DOWN))
+
         if self.frames == 0:
             self.movement = self.next_movement
             self.direction = self.MOVEMENTS[self.movement]
@@ -97,6 +106,9 @@ class Enemy(Base):
             self.x += self.dx
             self.y += self.dy
             self.frames -= 1
+        for missil in self.missils:
+            missil.update()
+
         for missil in missils:
             if missil.rect.colliderect(self.rect):
                 self.is_alive = False
@@ -105,6 +117,8 @@ class Enemy(Base):
 
     def draw(self, screen):
         pygame.draw.rect(screen, self.COLOR, self.rect)
+        for missil in self.missils:
+            missil.draw(screen)
 
 class Missil(Base):
     WIDTH = 10
@@ -175,7 +189,10 @@ class Game(object):
             enemy.update(self.player.missils)
 
         self.enemies[:] = [enemy for enemy in self.enemies if enemy.is_alive]
+        for enemy in self.enemies:
+            enemy.missils[:] = [missil for missil in enemy.missils if missil.is_alive]
         self.player.missils[:] = [missil for missil in self.player.missils if missil.is_alive]
+
 
     def draw(self):
         self.screen.fill(self.BLACK)
