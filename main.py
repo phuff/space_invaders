@@ -4,7 +4,16 @@ import pygame
 from pygame.locals import *
 
 
-class Player(object):
+class Base(object):
+    @property
+    def pos(self):
+        return (self.x, self.y)
+
+    @property
+    def size(self):
+        return (self.WIDTH, self.HEGIHT)
+
+class Player(Base):
     HEGIHT = 20
     WIDTH = 60
     COLOR = (0, 255, 0)
@@ -13,14 +22,6 @@ class Player(object):
     def __init__(self, x, y):
         self.x = x
         self.y = y
-
-    @property
-    def pos(self):
-        return (self.x, self.y)
-
-    @property
-    def size(self):
-        return (self.WIDTH, self.HEGIHT)
 
     def update(self, keys):
         if keys[K_LEFT]:
@@ -34,6 +35,52 @@ class Player(object):
             else:
                 self.x = Game.RIGHT - self.WIDTH
 
+    def draw(self, screen):
+        rect = pygame.Rect(self.pos, self.size)
+        pygame.draw.rect(screen, self.COLOR, rect)
+
+
+class Direction:
+    RIGHT = 0
+    LEFT  = 1
+    UP    = 2
+    DOWN  = 3
+
+
+class Enemy(Base):
+    HEGIHT = 25
+    WIDTH = 25
+    COLOR = (255, 255, 255)
+    SPEED = 1
+    DIRECTIONS = {
+        Direction.RIGHT: (SPEED,      0, 60),
+        Direction.LEFT:  (-SPEED,     0, 60),
+        Direction.DOWN:  (0,      SPEED,  5),
+    }
+    INITIAL_MOVEMENT = 0
+    MOVEMENTS = [Direction.LEFT, Direction.DOWN, Direction.RIGHT, Direction.DOWN]
+
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.movement = self.INITIAL_MOVEMENT
+        self.direction = self.MOVEMENTS[self.movement]
+        self.dx, self.dy, self.frames = self.DIRECTIONS[self.direction]
+
+    @property
+    def next_movement(self):
+        return (self.movement + 1) % len(self.MOVEMENTS)
+
+    def update(self):
+        if self.frames == 0:
+            self.movement = self.next_movement
+            self.direction = self.MOVEMENTS[self.movement]
+            self.dx, self.dy, self.frames = self.DIRECTIONS[self.direction]
+        else:
+            self.x += self.dx
+            self.y += self.dy
+            self.frames -= 1
+        
 
     def draw(self, screen):
         rect = pygame.Rect(self.pos, self.size)
@@ -57,6 +104,7 @@ class Game(object):
         self.clock = pygame.time.Clock()
         pygame.display.set_caption(self.WINDOWS_TITLE)
         self.player = Player(self.WIDTH // 2 - Player.WIDTH // 2, self.HEGIHT - Player.HEGIHT)
+        self.enemy = Enemy(70, 20)
 
     def update(self):
         # Handle exit events
@@ -69,10 +117,12 @@ class Game(object):
                 self.done = True
                 return
         self.player.update(keys)
+        self.enemy.update()
 
     def draw(self):
         self.screen.fill(self.BLACK)
         self.player.draw(self.screen)
+        self.enemy.draw(self.screen)
         pygame.display.flip()
 
     def wait(self):
