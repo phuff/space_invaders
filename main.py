@@ -8,6 +8,7 @@ class Player(object):
     HEGIHT = 20
     WIDTH = 60
     COLOR = (0, 255, 0)
+    DX = 10
 
     def __init__(self, x, y):
         self.x = x
@@ -21,8 +22,18 @@ class Player(object):
     def size(self):
         return (self.WIDTH, self.HEGIHT)
 
-    def update(self):
-        pass
+    def update(self, keys):
+        if keys[K_LEFT]:
+            if (self.x - self.DX) >= Game.LEFT:
+                self.x -= self.DX
+            else:
+                self.x = Game.LEFT
+        elif keys[K_RIGHT]:
+            if (self.x + self.DX + self.WIDTH) <= Game.RIGHT:
+                self.x += self.DX
+            else:
+                self.x = Game.RIGHT - self.WIDTH
+
 
     def draw(self, screen):
         rect = pygame.Rect(self.pos, self.size)
@@ -33,6 +44,8 @@ class Game(object):
 
     FRAMES_PER_SECOND = 30
     RESOLUTION = WIDTH, HEGIHT = 800, 600
+    LEFT = 0
+    RIGHT = WIDTH
     WINDOWS_TITLE = 'Space Invaders v1.0'
     BLACK = (0, 0, 0)
 
@@ -55,7 +68,7 @@ class Game(object):
             if event.type == pygame.QUIT:
                 self.done = True
                 return
-        # TODO: Handle players events here
+        self.player.update(keys)
 
     def draw(self):
         self.screen.fill(self.BLACK)
