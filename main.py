@@ -25,7 +25,7 @@ class Player(Base):
     COLOR = (0, 255, 0)
     DX = 10
     MISSIL_COOLDOWN = 15
-    MAX_MISSILS = 3
+    MAX_MISSILS = 20
 
     def __init__(self, x, y):
         self.x = x
@@ -70,7 +70,7 @@ class Direction:
 class Enemy(Base):
     HEGIHT = 25
     WIDTH = 25
-    COLOR = (255, 255, 255)
+    COLOR = (255, 0, 0)
     SPEED = 1
     DIRECTIONS = {
         Direction.RIGHT: (SPEED,      0, 60),
@@ -131,6 +131,7 @@ class Missil(Base):
     HEGIHT = 20
     WHITE = (255, 255, 255)
     GREEN = (0, 255, 0)
+    BLUE  = (0, 0, 255)
     SPEED = 5
 
     def __init__(self, x, y, direction):
@@ -144,7 +145,7 @@ class Missil(Base):
         return self.direction == Direction.DOWN
 
     def draw(self, screen):
-        color = self.WHITE if self.is_enemy else self.GREEN
+        color = self.BLUE if self.is_enemy else self.GREEN
         pygame.draw.rect(screen, color, self.rect)
 
     def update(self):
