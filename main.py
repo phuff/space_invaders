@@ -23,7 +23,7 @@ class Player(Base):
     HEGIHT = 20
     WIDTH = 60
     COLOR = (0, 255, 0)
-    DX = 10
+    DX = 50
     MISSIL_COOLDOWN = 5
     MAX_MISSILS = 40
 
@@ -45,6 +45,11 @@ class Player(Base):
                 self.x += self.DX
             else:
                 self.x = Game.RIGHT - self.WIDTH
+        elif keys[K_UP]:
+            if (self.y - self.DX - self.HEGIHT) >= Game.TOP:
+                self.y-= self.DX
+            else:
+                self.y = Game.TOP - self.HEGIHT
         if keys[K_SPACE] and self.missil_cooldown == 0 and len(self.missils) < self.MAX_MISSILS:
             self.missil_cooldown = self.MISSIL_COOLDOWN
             self.missils.append(Missil(self.x + self.WIDTH - Missil.WIDTH, self.y - self.HEGIHT, Direction.UP))
@@ -183,8 +188,8 @@ class Game(object):
         pygame.display.set_caption(self.WINDOWS_TITLE)
         self.player = Player(self.WIDTH // 2 - Player.WIDTH // 2, self.HEGIHT - Player.HEGIHT)
         self.enemies = []
-        for i in range(5):
-            for j in range(11):
+        for i in range(6):
+            for j in range(12):
                 self.enemies.append(Enemy(70 + (70 * j), 20 + i*70))
 
     def update(self):
