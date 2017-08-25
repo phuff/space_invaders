@@ -24,8 +24,8 @@ class Player(Base):
     WIDTH = 60
     COLOR = (0, 255, 0)
     DX = 10
-    MISSIL_COOLDOWN = 15
-    MAX_MISSILS = 20
+    MISSIL_COOLDOWN = 5
+    MAX_MISSILS = 40
 
     def __init__(self, x, y):
         self.x = x
@@ -47,7 +47,9 @@ class Player(Base):
                 self.x = Game.RIGHT - self.WIDTH
         if keys[K_SPACE] and self.missil_cooldown == 0 and len(self.missils) < self.MAX_MISSILS:
             self.missil_cooldown = self.MISSIL_COOLDOWN
-            self.missils.append(Missil(self.x + self.WIDTH // 2, self.y - self.HEGIHT, Direction.UP))
+            self.missils.append(Missil(self.x + self.WIDTH - Missil.WIDTH, self.y - self.HEGIHT, Direction.UP))
+            self.missils.append(Missil(self.x, self.y - self.HEGIHT, Direction.UP))
+            self.missils.append(Missil(self.x + self.WIDTH // 2 - (Missil.WIDTH/2), self.y - self.HEGIHT, Direction.UP))
         self.missil_cooldown = max(0, self.missil_cooldown - 1)
         for missil in self.missils:
             missil.update()
